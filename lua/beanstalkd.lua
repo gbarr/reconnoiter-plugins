@@ -208,7 +208,6 @@ function initiate(module, check)
 
   for k, v in pairs(results) do
     check.metric_uint64(k,v)
-    print (string.format("%s = %s", k, v))
     i = i + 1
   end
 
