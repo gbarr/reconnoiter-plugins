@@ -91,25 +91,6 @@ end
 
 local HttpClient = require 'noit.HttpClient'
 
--- workaround due to bug in HttpClient te_close
--- and also e:read(len) returning nil when it
--- sees EOF before len bytes
-
-function te_close(self, content_enc_func)
-    local str
-    repeat
-        str = self.e:read("\n")
-        if str ~= nil then
-            self.raw_bytes = self.raw_bytes + string.len(str)
-        end
-        local decoded = content_enc_func(str)
-        if decoded ~= nil then
-            self.content_bytes = self.content_bytes + string.len(decoded)
-        end
-        if self.hooks.consume ~= nil then self.hooks.consume(decoded) end
-    until str == nil
-end
-
 
 function initiate(module, check)
   local host = check.config.host or check.target
@@ -150,10 +131,7 @@ function initiate(module, check)
   if rv ~= 0 then error(err or "unknown error") end
 
   client:do_request('GET', uri, headers, nil)
-  client:get_headers()
-
-local passthru = function (s) return s end
-  te_close(client,passthru)
+  client:get_response();
 
   check.available()
 
